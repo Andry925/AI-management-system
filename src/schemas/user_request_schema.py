@@ -26,3 +26,8 @@ class UserResponseSchema(BaseModel):
     email: str
     created_at: datetime
     updated_at: datetime
+
+
+class LoginRequestSchema(BaseModel):
+    email: EmailStr = Field(min_length=10, max_length=50)
+    password: str = Field(min_length=10, max_length=50)
