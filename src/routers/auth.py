@@ -1,10 +1,15 @@
-from fastapi import APIRouter, status, HTTPException
+from datetime import timedelta
+from typing import Annotated
+
+from fastapi import APIRouter, status, HTTPException, Depends
+from fastapi.responses import JSONResponse
 from passlib.context import CryptContext
 from sqlalchemy import select
 
 from database import db_dependency
 from models.user_model import User
-from schemas.user_request_schema import UserRequestSchema, UserResponseSchema
+from schemas.user_request_schema import UserRequestSchema, UserResponseSchema, LoginRequestSchema
+from utils.authentication_utils import authenticate_user, create_jwt_token, get_current_user
 
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -25,3 +30,19 @@ async def registration(db: db_dependency, request: UserRequestSchema):
     await db.commit()
     await db.refresh(user_object)
     return user_object
+
+
+@router.post("/login", status_code=status.HTTP_200_OK)
+async def login(db: db_dependency, request: LoginRequestSchema):
+    login_request = request.model_dump()
+    email = login_request.get("email")
+    password = login_request.get("password")
+    user = await authenticate_user(db, email, password)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect email or password")
+    access_token = create_jwt_token(user, expires_delta=timedelta(minutes=30))
+    response = JSONResponse({"access_token": access_token})
+    return response
+
+
+user_dependency = Annotated[dict, Depends(get_current_user)]
