@@ -20,6 +20,7 @@ class Note(Base):
         sa.Integer,
         sa.ForeignKey('users.id'),
         nullable=False)
+    summarization = sa.Column(sa.Text, nullable=True, default=None)
     user = relationship('User', back_populates="notes")
     created_at = sa.Column(sa.DateTime, server_default=func.now())
     updated_at = sa.Column(
