@@ -1,8 +1,10 @@
 from fastapi import APIRouter, status, HTTPException, Path
+from fastapi.responses import JSONResponse
 from sqlalchemy import select
 from sqlalchemy_continuum import version_class
 
 from database import db_dependency
+from external_services.openai_service import make_summarization
 from models.notes_model import Note
 from models.user_model import User
 from schemas.note_schema import NoteSchema, NoteResponseSchema, NoteUpdateSchema
@@ -113,3 +115,27 @@ async def get_note_history(db: db_dependency, user: user_dependency, note_id: in
             title=note.title,
             priority=note.priority,
             content=note.content) for note in notes_history]
+
+
+@router.post("/note/summarization/{note_id}")
+async def summarize_note(db: db_dependency, user: user_dependency, note_id: int = Path(gt=0)):
+    current_user_id = int(user.get("id"))
+    note_result = await db.execute(select(Note).where(Note.id == note_id, Note.user_id == current_user_id))
+    note = note_result.scalar_one_or_none()
+    if not note:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Note with such id does not exist")
+    note_summarization = note.summarization
+    if note_summarization:
+        return JSONResponse(content={"summarization": note_summarization}, status_code=status.HTTP_200_OK)
+    note_content = note.content
+    summarization = await make_summarization(note_content=note_content)
+    if not summarization:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to generate a summarization for the note.",
+        )
+
+    note.summarization = summarization
+    await db.commit()
+    await db.refresh(note)
+    return JSONResponse(content={"summarization": note.summarization}, status_code=status.HTTP_201_CREATED)
