@@ -7,6 +7,7 @@ bcrypt==4.0.1
 certifi==2025.1.31
 cffi==1.17.1
 click==8.1.8
+coverage==7.7.0
 cryptography==44.0.2
 distro==1.9.0
 dnspython==2.7.0
@@ -37,6 +38,7 @@ pydantic==2.10.6
 pydantic_core==2.27.2
 pytest==8.3.5
 pytest-asyncio==0.25.3
+pytest-cov==6.0.0
 python-dateutil==2.9.0.post0
 python-decouple==3.8
 python-jose==3.4.0
