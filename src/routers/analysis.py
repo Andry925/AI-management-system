@@ -9,7 +9,7 @@ from schemas.note_schema import NoteSchema
 router = APIRouter(prefix="/api/v1/analysis", tags=["analysis"])
 
 
-@router.get("/note/analyse")
+@router.get("/notes")
 async def create_analysis(db: db_dependency, user: user_dependency):
     current_user_id = int(user.get("id"))
     all_notes_results = await db.execute(select(Note).where(Note.user_id == current_user_id))
