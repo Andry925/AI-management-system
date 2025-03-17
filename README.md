@@ -40,7 +40,7 @@ This project is an AI-powered note application that meets all the specified task
      docker-compose --build
      ```
 3. **Testing:**  
-   - Run tests with:
+   - Run tests with (docker-compose must be run as well):
      ```bash
      pytest -v -s
      ```
