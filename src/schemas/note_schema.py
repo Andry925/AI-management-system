@@ -16,9 +16,3 @@ class NoteResponseSchema(BaseModel):
 
     class Config:
         orm_mode = True
-
-
-class NoteUpdateSchema(BaseModel):
-    title: str = Field(min_length=5, max_length=100)
-    content: str = Field(min_length=10, max_length=100000)
-    priority: int = Field(0, ge=0, le=100)

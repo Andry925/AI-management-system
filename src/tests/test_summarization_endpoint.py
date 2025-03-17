@@ -13,7 +13,7 @@ async def test_summarize_note_success(async_client, create_random_note, monkeypa
     monkeypatch.setattr("routers.notes.make_summarization", return_random_summary)
     note = create_random_note
     note_id = note.id
-    sum_resp = await async_client.post(f"/api/v1/notes/note/summarization/{note_id}")
+    sum_resp = await async_client.post(f"/api/v1/notes/{note_id}/summarization")
     assert sum_resp.status_code == 201
     async with TestingSession() as db:
         result = await db.execute(select(Note).where(Note.id == note_id))
@@ -34,7 +34,7 @@ async def test_summarize_note_with_existing_summary(async_client, create_random_
         await db.commit()
         await db.refresh(note_obj)
 
-    response = await async_client.post(f"/api/v1/notes/note/summarization/{note_id}")
+    response = await async_client.post(f"/api/v1/notes/{note_id}/summarization")
     assert response.status_code == 200
     data = response.json()
     assert "summarization" in data
@@ -43,8 +43,8 @@ async def test_summarize_note_with_existing_summary(async_client, create_random_
 
 @pytest.mark.asyncio
 async def test_summarize_note_not_found(async_client):
-    random_id= 3213214
-    response = await async_client.post(f"/api/v1/notes/note/summarization/{random_id}")
+    random_id = 3213214
+    response = await async_client.post(f"/api/v1/notes/{random_id}/summarization")
     assert response.status_code == 404
     data = response.json()
     assert data["detail"] == "Note with such id does not exist"
