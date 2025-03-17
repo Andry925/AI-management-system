@@ -11,7 +11,6 @@ USER_DATA = {
     "username": "johndoe1234",
     "email": "rega600b@gmail.com",
     "password": "Panel@2004",
-    "role": "admin"
 }
 
 
@@ -64,3 +63,6 @@ async def test_login_user(create_user, async_client):
     assert response.status_code == 200
     assert access_token is not None
     assert payload.get('sub') == USER_DATA.get('email')
+
+
+
