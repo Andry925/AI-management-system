@@ -123,10 +123,15 @@ async def summarize_note(db: db_dependency, user: user_dependency, note_id: int 
     note_result = await db.execute(select(Note).where(Note.id == note_id, Note.user_id == current_user_id))
     note = note_result.scalar_one_or_none()
     if not note:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Note with such id does not exist")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Note with such id does not exist")
     note_summarization = note.summarization
     if note_summarization:
-        return JSONResponse(content={"summarization": note_summarization}, status_code=status.HTTP_200_OK)
+        return JSONResponse(
+            content={
+                "summarization": note_summarization},
+            status_code=status.HTTP_200_OK)
     note_content = note.content
     summarization = await make_summarization(note_content=note_content)
     if not summarization:
@@ -138,4 +143,7 @@ async def summarize_note(db: db_dependency, user: user_dependency, note_id: int 
     note.summarization = summarization
     await db.commit()
     await db.refresh(note)
-    return JSONResponse(content={"summarization": note.summarization}, status_code=status.HTTP_201_CREATED)
+    return JSONResponse(
+        content={
+            "summarization": note.summarization},
+        status_code=status.HTTP_201_CREATED)

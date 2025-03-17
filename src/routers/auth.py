@@ -16,14 +16,19 @@ bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 router = APIRouter(prefix="/api/v1/authentication", tags=["auth"])
 
 
-@router.post("/registration", status_code=status.HTTP_201_CREATED, response_model=UserResponseSchema)
+@router.post("/registration",
+             status_code=status.HTTP_201_CREATED,
+             response_model=UserResponseSchema)
 async def registration(db: db_dependency, request: UserRequestSchema):
     user_data = request.model_dump()
     result = await db.execute(select(User).where(User.email == user_data["email"]))
     user = result.scalar_one_or_none()
     if user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User with such email already exists")
-    user_data['hashed_password'] = bcrypt_context.encrypt(user_data['password'])
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User with such email already exists")
+    user_data['hashed_password'] = bcrypt_context.encrypt(
+        user_data['password'])
     user_data.pop('password', None)
     user_object = User(**user_data)
     db.add(user_object)
@@ -39,7 +44,9 @@ async def login(db: db_dependency, request: LoginRequestSchema):
     password = login_request.get("password")
     user = await authenticate_user(db, email, password)
     if not user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect email or password")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect email or password")
     access_token = create_jwt_token(user, expires_delta=timedelta(minutes=30))
     response = JSONResponse({"access_token": access_token})
     return response
