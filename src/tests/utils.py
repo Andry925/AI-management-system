@@ -7,7 +7,16 @@ from sqlalchemy.pool import StaticPool
 from database import Base, get_db
 from main import app
 from models.user_model import User
+from models.notes_model import Note
 from routers.auth import bcrypt_context, get_current_user
+
+
+INITIAL_NOTE_DATA = {
+    "title": "Test Note",
+    "content": "This is a test note content.",
+    "priority": 5,
+    "user_id":1
+}
 
 SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 
@@ -28,17 +37,15 @@ async def override_get_db():
         yield db
 
 
-async def override_current_user():
+async def override_get_current_user():
     return {
-        "id": 1,
-        "username": "TestUser2004",
-        "email": "test@gmail.com",
-        "password": "Some_password@2004"
+        "id": "1",
+        "sub": "test@gmail.com",
     }
 
 
 app.dependency_overrides[get_db] = override_get_db
-app.dependency_overrides[get_current_user] = override_current_user
+app.dependency_overrides[get_current_user] = override_get_current_user
 
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
@@ -63,6 +70,7 @@ async def create_user():
         username="SomeUser2004",
         email="someuser2004@gmail.com",
         hashed_password=hashed_password,
+
     )
     async with TestingSession() as db:
         db.add(user)
@@ -72,3 +80,19 @@ async def create_user():
     async with engine.begin() as conn:
         await conn.execute(text("DELETE FROM users"))
         await conn.commit()
+
+
+@pytest_asyncio.fixture
+async def create_random_note():
+    note = Note(**INITIAL_NOTE_DATA)
+    async with TestingSession() as db:
+        db.add(note)
+        await db.commit()
+        await db.refresh(note)
+    yield note
+    async with engine.begin() as conn:
+        await conn.execute(text("DELETE FROM notes"))
+        await conn.commit()
+
+
+
