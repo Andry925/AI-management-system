@@ -26,10 +26,10 @@ async def create_note(db: db_dependency, user: user_dependency, note: NoteSchema
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Note already exists")
     user_result = await db.execute(select(User).where(User.id == int(user.get("id"))))
-    user = user_result.scalar_one_or_none()
+    note_owner = user_result.scalar_one_or_none()
     note_object = Note(**note_request_dict)
-    note_object.user_id = int(user.id)
-    note_object.user = user
+    note_object.user_id = int(user.get('id'))
+    note_object.user = note_owner
     db.add(note_object)
     await db.commit()
     await db.refresh(note_object)
@@ -86,7 +86,7 @@ async def delete_note(db: db_dependency, user: user_dependency, note_id: int = P
 
 @router.get("/single-note/{note_id}",
             status_code=status.HTTP_200_OK,
-            response_model=NoteResponseSchema)
+            response_model=NoteSchema)
 async def get_note(db: db_dependency, user: user_dependency, note_id: int = Path(gt=0)):
     result = await db.execute(select(Note).where(Note.id == note_id, Note.user_id == int(user.get("id"))))
     existed_note = result.scalar_one_or_none()
