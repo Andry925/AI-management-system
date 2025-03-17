@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
 from database import init_db
-from routers import auth, notes
+from routers import auth, notes, analysis
 from models.user_model import User
 from models.notes_model import Note
 
@@ -20,3 +20,5 @@ async def on_startup():
 
 app.include_router(auth.router)
 app.include_router(notes.router)
+
+app.include_router(analysis.router)
